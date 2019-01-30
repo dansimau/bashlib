@@ -36,6 +36,14 @@ test_absolute_path_single_dot() {
     )
 }
 
+test_absolute_path_tilde() {
+    HOME=/tmp/test-bash-home
+    mkdir -p $HOME/foo
+    [ "$(absolute_path "~")" == "$HOME" ]
+    [ "$(absolute_path "~/foo")" == "$HOME/foo" ]
+    [ "$(absolute_path "~foo")" == "$PWD/~foo" ]
+}
+
 test_resolve_symlinks() {
     touch /tmp/foo
     mkdir -p /tmp/1/2

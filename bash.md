@@ -111,15 +111,24 @@ and handles "." and "..".
 absolute_path() {
     local path=$1
 
-    if [ "$path" == "." ]; then
-        echo "$(pwd)"
-    elif [ "$path" == ".." ]; then
-        echo "$(dirname "$(pwd)")"
-    else
-        path="$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
-        # Replace double slashes, happens when we're operating at the root
-        echo "${path/\/\///}"
-    fi
+    case "$path" in
+        .)
+            echo "$(pwd)"
+            ;;
+        ..)
+            echo "$(dirname "$(pwd)")"
+            ;;
+        \~)
+            [ -n "$HOME" ] && echo "$HOME" || return 1
+            ;;
+        \~/*)
+            [ -n "$HOME" ] && echo "${path/~/$HOME}" || return 1
+            ;;
+        *)
+            path="$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
+            # Replace double slashes, happens when we're operating at the root
+            echo "${path/\/\///}"
+    esac
 }
 ```
 

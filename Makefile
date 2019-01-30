@@ -1,5 +1,5 @@
 .PHONY: out
-out: bash.md
+out: test bash.md
 
 bash.md: bash.sh
 	./gen-docs.sh >bash.md
