@@ -53,13 +53,33 @@ array_filter() {
 #
 # Join array elements with a string.
 #
-# $1: String separator
-# $@: Array elements
+# $1: String default, used in case array is empty
+# $2: String separator, has to be a single element
+# $@: Array elements, empty elements will be skipped
 #
-array_join() {
-    local sep=$1; shift
-    IFS=$sep eval 'echo "$*"'
+
+join() {
+    local -a args
+    local default
+    local ifs
+    local IFS
+
+    default="$1"; shift
+
+    ifs="$1"; shift
+
+    [ "${#ifs}" -gt 1 ] && exit 1
+
+    # read into array, ifs is still a space
+    read -r -a args <<< "$*"
+
+    IFS="$ifs"
+    # args will be unbound if no more arguments were passed in
+    # check for that, use default if necessary
+    # otherwise dump the string with overwritten ifs
+    [ -z "${args-}" ] && echo "$default" || echo "${args[*]}"
 }
+
 
 ################
 # Benchmarking #
