@@ -92,6 +92,14 @@ test_join_invalid_delimeter() {
     [ "$?" == 1 ]
 }
 
+test_join_no_delimeter() {
+    local result
+
+    result=$(join "def")
+
+    [ "$result" == "def" ]
+}
+
 test_join_default() {
     local result
 

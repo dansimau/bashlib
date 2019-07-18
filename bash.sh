@@ -53,7 +53,7 @@ array_filter() {
 #
 # Join array elements with a string.
 #
-# $1: String default, used in case array is empty
+# $1: String default, used in case array to join is empty
 # $2: String separator, has to be a single element
 # $@: Array elements, empty elements will be skipped
 #
