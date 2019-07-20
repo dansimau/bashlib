@@ -1,0 +1,11 @@
+language: bash
+
+services:
+  - docker
+
+env:
+  - TEST_BASH_VERSION=3
+  - TEST_BASH_VERSION=4
+  - TEST_BASH_VERSION=5
+
+script: docker run --rm -v $PWD:/bashlib:ro -w /bashlib bash:${TEST_BASH_VERSION} bash /bashlib/test-bash.sh
