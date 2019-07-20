@@ -72,6 +72,11 @@ tests() {
     return $ret
 }
 
+main() {
+    echo "Testing bash version: ${BASH_VERSION}"
+    tests "$@"
+}
+
 if [ "$0" == "$BASH_SOURCE" ]; then
-    tests $(compgen -A function | grep -E ^test_)
+    main $(compgen -A function | grep -E ^test_)
 fi
