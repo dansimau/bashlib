@@ -12,40 +12,83 @@
 #
 # The only proper way to do this is by looping through each item. Other
 # solutions claim to do this using string matching, but they are often
-# dangerous because don't handle edge cases.
+# dangerous because they don't handle edge cases, e.g. may be susceptible to
+# partial match or may not properly handle elements containing newlines.
 #
 
 #
 # Returns 0 if item is in the array; 1 otherwise.
 #
-# $1: The array value to search for
-# $@: The array values, e.g. "${myarray[@]}"
+# $1: name of the array variable to search
+# $2: array item to search for
 #
 array_contains() {
-    local item=$1; shift
-    for val in "$@"; do
+    local arr_name=$1
+    local item=$2
+
+    eval "local -a _tmp_arr=(\"\${${arr_name}[@]}\")"
+
+    for val in "${_tmp_arr[@]}"; do
         if [ "$val" == "$item" ]; then
             return 0
         fi
     done
+
+    return 1
+}
+
+
+#
+# Returns 0 if regexp matches any item in the array; 1 otherwise.
+#
+# $1: name of the array variable to search
+# $2: regexp to match
+#
+array_contains_regexp() {
+    local arr_name=$1
+    local item=$2
+
+    eval "local -a _tmp_arr=(\"\${${arr_name}[@]}\")"
+
+    for val in "${_tmp_arr[@]}"; do
+        if [[ "$val" =~ $item ]]; then
+            return 0
+        fi
+    done
+
     return 1
 }
 
 # ### Array filter
 
 #
-# Return all elements of an array with the specified item removed.
+# Remove elements from the named array. Iterate over each element and call
+# named function. If the function returns false, the element is removed.
 #
-# $1: The array value to remove
-# $@: The array values, e.g. "${myarray[@]}"
+# $1: name of the array variable
+# $@: name of the function to call plus any arguments; element to test will be
+#     provided as the last arg
 #
 array_filter() {
-    local item=$1; shift
-    for val in "$@"; do
-        if [ "$val" != "$item" ]; then
-            echo $val
+    local arr_name=$1; shift
+    local func_name=$1; shift
+    local -a func_args=("$@")
+
+    # Escape func args
+    for i in "${!func_args[@]}"; do
+        func_args[$i]=\'"${func_args[@]}"\'
+    done
+
+    eval "local -a _tmp_arr=(\"\${${arr_name}[@]}\")"
+
+    local -a filtered_arr=()
+    for val in "${_tmp_arr[@]}"; do
+        if ! eval "$func_name" "${func_args[@]}" "$val"; then
+            filtered_arr+=("$val")
         fi
     done
+
+    eval "${arr_name}=(\"\${filtered_arr[@]}\")"
 }
 
 # ### Array join
@@ -59,6 +102,34 @@ array_filter() {
 array_join() {
     local sep=$1; shift
     IFS=$sep eval 'echo "$*"'
+}
+
+#
+# $1: name of the array variable
+# $2: index of element to remove
+#
+array_pop() {
+    local arr_name=$1
+    local -i index=$2
+
+    eval "local -a _tmp_arr=(\"\${${arr_name}[@]}\")"
+
+    if [ "$index" -gt $((${#_tmp_arr[@]} - 1)) ]; then
+        echo "array_pop: index out of range" >&2
+        return 1
+    fi
+
+    local -a filtered_arr=()
+    local -i c=-1
+    for val in "${_tmp_arr[@]}"; do
+        c=$((c+1))
+        # Skip item at index
+        [ $c -eq $index ] && continue
+
+        filtered_arr+=("$val")
+    done
+
+    eval "${arr_name}=(\"\${filtered_arr[@]}\")"
 }
 
 ################
@@ -274,6 +345,22 @@ parallel() {
 ###########
 # Testing #
 ###########
+
+#
+# $1: string to match
+# $2: value to check
+#
+match_string() {
+    [ "$2" == "$1" ]
+}
+
+#
+# $1: regexp
+# $2: value to check
+#
+match_regexp() {
+    [[ "$2" =~ $1 ]]
+}
 
 # ### List all test functions
 
