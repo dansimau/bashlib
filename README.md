@@ -13,7 +13,7 @@ am writing.
 
 ## Documentation
 
-See bash.md.
+See [bash.md](bash.md).
 
 ## Generating documentation
 
