@@ -1,4 +1,4 @@
-# bash lib
+# bash lib ![](https://api.travis-ci.org/dansimau/bashlib.svg?branch=master)
 
 bash is terse, esoteric and full of gotchas. You should never use it like a
 proper programming language. But...
