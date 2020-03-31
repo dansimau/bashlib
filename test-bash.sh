@@ -3,37 +3,29 @@
 . "${0%/*}/bash.sh"
 
 test_absolute_path_simple_root() {
-    (
-        cd /
-        [ "$(absolute_path "tmp")" == "/tmp" ]
-    )
+    cd /
+    [ "$(absolute_path "tmp")" == "/tmp" ] || return 1
 }
 
 test_absolute_path_multiple_levels() {
-    (
-        touch /tmp/foo
-        cd /
+    touch /tmp/foo
+    cd /
 
-        [ "$(absolute_path "tmp/foo")" == "/tmp/foo" ]
-    )
+    [ "$(absolute_path "tmp/foo")" == "/tmp/foo" ] || return 1
 }
 
 test_absolute_path_double_dot() {
-    (
-        mkdir -p /tmp/bar
-        cd /tmp/bar
+    mkdir -p /tmp/bar
+    cd /tmp/bar
 
-        [ "$(absolute_path "..")" == "/tmp" ]
-    )
+    [ "$(absolute_path "..")" == "/tmp" ] || return 1
 }
 
 test_absolute_path_single_dot() {
-    (
-        mkdir -p /tmp/bar
-        cd /tmp/bar
+    mkdir -p /tmp/bar
+    cd /tmp/bar
 
-        [ "$(absolute_path ".")" == "/tmp/bar" ]
-    )
+    [ "$(absolute_path ".")" == "/tmp/bar" ] || return 1
 }
 
 test_resolve_symlinks() {
@@ -41,7 +33,18 @@ test_resolve_symlinks() {
     mkdir -p /tmp/1/2
     ln -sf ../../foo /tmp/1/2/foo
 
-    [ "$(resolve_symlinks /tmp/1/2/foo)" == "/tmp/foo" ]
+    [ "$(resolve_symlinks /tmp/1/2/foo)" == "/tmp/foo" ] || return 1
+}
+
+test_prettify_time() {
+    [ "$(prettify_time 0)" == "0s" ] || return 1
+    [ "$(prettify_time 61)" == "1m 1s" ] || return 1
+    [ "$(prettify_time 7200)" == "2h" ] || return 1
+    [ "$(prettify_time 7259)" == "2h 59s" ] || return 1
+    [ "$(prettify_time 7259)" == "2h 59s" ] || return 1
+    [ "$(prettify_time 10740)" == "2h 59m" ] || return 1
+    [ "$(prettify_time 10799)" == "2h 59m 59s" ] || return 1
+    [ "$(prettify_time 86400)" == "24h" ] || return 1
 }
 
 tests() {

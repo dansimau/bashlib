@@ -338,17 +338,34 @@ tests() {
 prettify_time() {
     local time_secs=$1
 
+    local hours
     local mins
     local secs
+    local -a buf=()
 
-    mins=$(($time_secs / 60))
+    hours=$(($time_secs / 3600))
+    mins=$((($time_secs % 3600) / 60))
     secs=$(($time_secs % 60))
 
-    if [ $mins -gt 0 ]; then
-        echo -n "${mins}m "
+    if [ $secs -eq 0 ] && [ $mins -eq 0 ] && [ $hours -eq 0 ]; then
+        echo "0s"
+        return
     fi
 
-    echo "${secs}s"
+    if [ $hours -gt 0 ]; then
+        buf+=("${hours}h")
+    fi
+
+    if [ $mins -gt 0 ]; then
+        buf+=("${mins}m")
+    fi
+
+    if [ $secs -gt 0 ]; then
+        buf+=("${secs}s")
+    fi
+
+    # Join buffer array elemts with space
+    IFS=" " eval 'echo "${buf[*]}"'
 }
 
 #############
