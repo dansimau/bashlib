@@ -47,6 +47,70 @@ test_prettify_time() {
     [ "$(prettify_time 86400)" == "24h" ] || return 1
 }
 
+test_join_standard() {
+    local result
+
+    result=$(join "def" - 1 2 3)
+
+    [ "$result" == "1-2-3" ]
+}
+
+test_join_one() {
+    local result
+
+    result=$(join "def" - 1)
+
+    [ "$result" == "1" ]
+}
+
+test_join_spaces() {
+    local result
+
+    result=$(join "def" - 1 '' '' 3)
+
+    [ "$result" == "1-3" ]
+}
+
+test_join_more_spaces() {
+    local result
+
+    result=$(join "def" - 1   3)
+
+    [ "$result" == "1-3" ]
+}
+
+test_join_other_delimeter() {
+    local result
+
+    result=$(join "def" "b" 1   3)
+
+    [ "$result" == "1b3" ]
+}
+
+test_join_invalid_delimeter() {
+    local result
+
+    result=$(join "def" "bb" 1   3)
+
+    [ "$?" == 1 ]
+}
+
+test_join_no_delimeter() {
+    local result
+
+    result=$(join "def")
+
+    [ "$result" == "def" ]
+}
+
+test_join_default() {
+    local result
+
+    result=$(join "def" - '' '')
+
+    [ "$result" == "def" ]
+}
+
 tests() {
     local ret=0
     local test_log="/tmp/${0##*/}.test.log"
