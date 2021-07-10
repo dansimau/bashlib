@@ -28,6 +28,85 @@ test_absolute_path_single_dot() {
     [ "$(absolute_path ".")" == "/tmp/bar" ] || return 1
 }
 
+test_array_contains() {
+    local -a test_input=("foo" "bar")
+    array_contains test_input foo
+}
+
+test_array_contains_multiline() {
+    local -a test_input=("foo" "bar"$'\n'"baz")
+    array_contains test_input "bar"$'\n'"baz"
+    ! array_contains test_input baz
+}
+
+test_array_contains_false() {
+    local -a test_input=("foo" "bar")
+    ! array_contains test_input baz
+}
+
+test_array_contains_does_not_do_partial_match() {
+    local -a test_input=("foobar" "baz")
+    ! array_contains test_input foo
+}
+
+test_array_contains_handles_whitespace_and_empty() {
+    # We want to make sure our implementation doesn't collapse whitespaces, or
+    # consider them to be the same, or consider "" to be equivalent.
+    local -a test_input=(" " $'\n' "  ")
+    ! array_contains test_input ""
+}
+
+test_array_contains_regexp() {
+    local -a test_input=("foobar" "baz")
+    array_contains_regexp test_input foo
+}
+
+test_array_filter() {
+    local -a arr=("foo" "bar" "baz")
+
+    array_filter arr match_string bar
+
+    [ ${#arr[@]} -eq 2 ]
+    [ "${arr[0]}" == "foo" ]
+    [ "${arr[1]}" == "baz" ]
+}
+
+test_array_filter_multiline() {
+    local -a arr=("foo" "bar"$'\n'"baz" "quux")
+    [ ${#arr[@]} -eq 4 ]
+
+    array_filter arr match_string "foo"
+
+    [ ${#arr[@]} -eq 2 ]
+    [ "${arr[0]}" == "bar"$'\n'"baz" ]
+    [ "${arr[1]}" == "quux" ]
+}
+
+test_array_filter_regexp() {
+    local -a arr=("foo" "bar" "baz")
+
+    array_filter arr match_regexp "foo|bar"
+
+    [ ${#arr[@]} -eq 1 ]
+    [ "${arr[0]}" == "baz" ]
+}
+
+test_array_pop() {
+    local -a arr=("foo" "bar"$'\n'"baz" "qux")
+    [ ${#arr} -eq 3 ]
+
+    array_pop arr 1
+
+    [ ${#arr} -eq 2 ]
+    [ "${arr[0]}" == "foo" ]
+    [ "${arr[1]}" == "qux" ]
+}
+
+test_array_pop_out_of_range() {
+    local -a arr=("foo" "bar")
+    ! array_pop arr 2
+}
+
 test_resolve_symlinks() {
     touch /tmp/foo
     mkdir -p /tmp/1/2
@@ -76,10 +155,16 @@ tests() {
 }
 
 main() {
+    local -a tests_to_run=("$@")
+
+    if [ ${#tests_to_run[@]} -eq 0 ]; then
+        tests_to_run=($(compgen -A function | grep -E ^test_))
+    fi
+
     echo "Testing bash version: ${BASH_VERSION}"
-    tests "$@"
+    tests "${tests_to_run[@]}"
 }
 
 if [ "$0" == "$BASH_SOURCE" ]; then
-    main $(compgen -A function | grep -E ^test_)
+    main "$@"
 fi
